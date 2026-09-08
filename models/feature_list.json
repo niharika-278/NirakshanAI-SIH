@@ -1,0 +1,11 @@
+[
+  "utilization_pct",
+  "progress_gap_proxy",
+  "overdue_days",
+  "approval_lag_days",
+  "days_since_last_payment",
+  "peer_cost_zscore",
+  "payment_count_zscore",
+  "payment_amount_zscore",
+  "max_single_payment_ratio"
+]

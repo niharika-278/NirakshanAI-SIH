@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NirakshanAI — District Risk Choropleth</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f5f5; }
+        #map { width: 100vw; height: 100vh; }
+        .header { position: absolute; top: 10px; left: 10px; right: 10px; z-index: 1000; background: white; padding: 12px 16px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; }
+        .header h1 { font-size: 18px; font-weight: 600; color: #1a1a2e; margin: 0; }
+        .header .subtitle { font-size: 12px; color: #666; margin-top: 2px; }
+        .legend { position: absolute; bottom: 20px; left: 20px; z-index: 1000; background: white; padding: 12px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); font-size: 13px; min-width: 180px; }
+        .legend-title { font-weight: 600; margin-bottom: 8px; color: #1a1a2e; }
+        .legend-row { display: flex; align-items: center; margin: 4px 0; gap: 8px; }
+        .legend-color { width: 18px; height: 18px; border-radius: 3px; border: 1px solid rgba(0,0,0,0.1); }
+        .legend-color.no-data { background: #f0f0f0; background-image: repeating-linear-gradient(45deg, transparent, transparent 4px, rgba(0,0,0,0.1) 4px, rgba(0,0,0,0.1) 8px); }
+        .legend-label { color: #333; }
+        .legend-note { margin-top: 8px; font-size: 11px; color: #888; }
+        .tooltip-content { font-size: 13px; line-height: 1.6; }
+        .tooltip-content strong { color: #1a1a2e; }
+        .tooltip-content .low-confidence { color: #e67e22; font-weight: 500; font-size: 12px; }
+        .leaflet-popup-content-wrapper { border-radius: 8px; box-shadow: 0 4px 16px rgba(0,0,0,0.15); }
+        .leaflet-popup-content { margin: 8px 12px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div>
+            <h1>NirakshanAI — District Risk Choropleth</h1>
+            <div class="subtitle">Interactive map of average risk scores by district (MPLADS)</div>
+        </div>
+    </div>
+    <div id="map"></div>
+    <div class="legend" id="legend">
+        <div class="legend-title">Average Risk Score</div>
+        <div class="legend-row"><div class="legend-color" style="background:#ffffcc"></div><span class="legend-label">0 – 15</span></div>
+        <div class="legend-row"><div class="legend-color" style="background:#ffeda0"></div><span class="legend-label">15 – 30</span></div>
+        <div class="legend-row"><div class="legend-color" style="background:#fed976"></div><span class="legend-label">30 – 45</span></div>
+        <div class="legend-row"><div class="legend-color" style="background:#feb24c"></div><span class="legend-label">45 – 60</span></div>
+        <div class="legend-row"><div class="legend-color" style="background:#fd8d3c"></div><span class="legend-label">60 – 75</span></div>
+        <div class="legend-row"><div class="legend-color" style="background:#fc4e2a"></div><span class="legend-label">75 – 90</span></div>
+        <div class="legend-row"><div class="legend-color" style="background:#e31a1c"></div><span class="legend-label">90 – 100</span></div>
+        <div class="legend-row"><div class="legend-color no-data"></div><span class="legend-label">No data</span></div>
+        <div class="legend-note">Risk bands: LOW 0–30 | MEDIUM 31–60 | HIGH 61–80 | CRITICAL 81–100</div>
+        <div class="legend-note">Districts with fewer than 10 projects shown with reduced opacity</div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script>
+        // Color scale matching the static version (YlOrRd)
+        const COLOR_SCALE = [
+            { max: 15,  color: '#ffffcc' },
+            { max: 30,  color: '#ffeda0' },
+            { max: 45,  color: '#fed976' },
+            { max: 60,  color: '#feb24c' },
+            { max: 75,  color: '#fd8d3c' },
+            { max: 90,  color: '#fc4e2a' },
+            { max: 100, color: '#e31a1c' }
+        ];
+
+        const NO_DATA_COLOR = '#f0f0f0';
+        const NO_DATA_PATTERN = 'repeating-linear-gradient(45deg, transparent, transparent 4px, rgba(0,0,0,0.1) 4px, rgba(0,0,0,0.1) 8px)';
+        const LOW_SAMPLE_THRESHOLD = 10;
+        const LOW_SAMPLE_OPACITY = 0.4;
+        const NORMAL_OPACITY = 0.8;
+
+        function getColor(score) {
+            if (score === null || score === undefined || isNaN(score)) return NO_DATA_COLOR;
+            for (const stop of COLOR_SCALE) {
+                if (score <= stop.max) return stop.color;
+            }
+            return COLOR_SCALE[COLOR_SCALE.length - 1].color;
+        }
+
+        function getOpacity(projectCount) {
+            if (projectCount === null || projectCount === undefined || projectCount < LOW_SAMPLE_THRESHOLD) {
+                return LOW_SAMPLE_OPACITY;
+            }
+            return NORMAL_OPACITY;
+        }
+
+        function getRiskBand(score) {
+            if (score === null || score === undefined || isNaN(score)) return 'No data';
+            if (score <= 30) return 'LOW';
+            if (score <= 60) return 'MEDIUM';
+            if (score <= 80) return 'HIGH';
+            return 'CRITICAL';
+        }
+
+        // Initialize map centered on India
+        const map = L.map('map', {
+            center: [22.5, 80],
+            zoom: 5,
+            minZoom: 4,
+            maxZoom: 10,
+            zoomControl: true
+        });
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+            subdomains: 'abcd',
+            maxZoom: 19
+        }).addTo(map);
+
+        // Load district boundaries and risk data
+        Promise.all([
+            fetch('district_boundaries.geojson').then(r => r.json()),
+            fetch('district_risk_data.json').then(r => r.json())
+        ]).then(([geojson, riskData]) => {
+            // Build lookup from risk data
+            const riskLookup = {};
+            riskData.forEach(d => {
+                const key = `${d.state_norm || d.state.toLowerCase()}|${d.district_norm}`;
+                riskLookup[key] = {
+                    avgRisk: d.avg_risk_score,
+                    projectCount: d.project_count,
+                    state: d.state,
+                    district: d.district
+                };
+            });
+
+            // Style function for GeoJSON layer
+            function style(feature) {
+                const state = feature.properties.state;
+                const district = feature.properties.district;
+                const districtNorm = feature.properties.district_norm;
+                const key = `${state.toLowerCase()}|${districtNorm}`;
+                const risk = riskLookup[key];
+
+                const color = getColor(risk ? risk.avgRisk : null);
+                const opacity = risk ? getOpacity(risk.projectCount) : 0.3;
+
+                return {
+                    fillColor: color,
+                    weight: 0.5,
+                    opacity: 1,
+                    color: 'white',
+                    fillOpacity: opacity,
+                    dashArray: risk ? null : '4,4'
+                };
+            }
+
+            // Highlight on hover
+            function highlightFeature(e) {
+                const layer = e.target;
+                layer.setStyle({
+                    weight: 2,
+                    color: '#333',
+                    dashArray: '',
+                    fillOpacity: Math.min(layer.options.fillOpacity + 0.15, 0.95)
+                });
+                layer.bringToFront();
+            }
+
+            function resetHighlight(e) {
+                geojsonLayer.resetStyle(e.target);
+            }
+
+            // Tooltip on hover
+            function onEachFeature(feature, layer) {
+                const state = feature.properties.state;
+                const district = feature.properties.district;
+                const districtNorm = feature.properties.district_norm;
+                const key = `${state.toLowerCase()}|${districtNorm}`;
+                const risk = riskLookup[key];
+
+                let content = `<div class="tooltip-content">
+                    <strong>${district}</strong>, ${state}<br/>`;
+
+                if (risk) {
+                    content += `Average Risk Score: <strong>${risk.avgRisk.toFixed(2)}</strong> (${getRiskBand(risk.avgRisk)})<br/>`;
+                    content += `Projects: <strong>${risk.projectCount}</strong>`;
+                    if (risk.projectCount < LOW_SAMPLE_THRESHOLD) {
+                        content += `<br/><span class="low-confidence">⚠ Low sample size (n=${risk.projectCount}) — interpret with caution</span>`;
+                    }
+                } else {
+                    content += `<span style="color:#888;">No risk data available</span>`;
+                }
+                content += `</div>`;
+
+                layer.bindTooltip(content, {
+                    sticky: true,
+                    direction: 'auto',
+                    offset: L.point(0, -10),
+                    opacity: 0.95,
+                    className: 'custom-tooltip'
+                });
+            }
+
+            // Create GeoJSON layer
+            const geojsonLayer = L.geoJSON(geojson, {
+                style: style,
+                onEachFeature: onEachFeature
+            }).addTo(map);
+
+            // Fit map to bounds of the GeoJSON
+            map.fitBounds(geojsonLayer.getBounds(), { padding: [20, 20] });
+
+            // Add state boundaries overlay
+            const stateBoundaries = L.geoJSON(geojson, {
+                style: {
+                    fill: false,
+                    weight: 1.5,
+                    color: '#333',
+                    opacity: 0.7
+                }
+            }).addTo(map);
+
+        }).catch(err => {
+            console.error('Error loading map data:', err);
+            document.getElementById('map').innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#666;font-size:16px;">Failed to load map data. Check console for details.</div>';
+        });
+    </script>
+</body>
+</html>
