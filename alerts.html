@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NirakshanAI - Risk Alerts</title>
+  
+  <link rel="stylesheet" href="css/style.css">
+  <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+  <style>
+    .filter-tabs {
+      display: flex;
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+    }
+    .filter-btn {
+      padding: 0.5rem 1.25rem;
+      border-radius: 6px;
+      border: 1px solid #cbd5e1;
+      background: #ffffff;
+      color: #475569;
+      font-weight: 600;
+      font-size: 0.875rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .filter-btn:hover {
+      background: #f1f5f9;
+    }
+    .filter-btn.active {
+      background: #2563eb;
+      color: #ffffff;
+      border-color: #2563eb;
+    }
+    .alert-card {
+      background: #ffffff;
+      border-radius: 8px;
+      padding: 1.25rem 1.5rem;
+      margin-bottom: 1rem;
+      border-left: 4px solid #cbd5e1;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    .alert-card.high-risk { border-left-color: #dc2626; }
+    .alert-card.medium-risk { border-left-color: #d97706; }
+    .alert-card.low-risk { border-left-color: #16a34a; }
+
+    .alert-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 0.5rem;
+    }
+    .alert-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #0f172a;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .alert-meta {
+      font-size: 0.8rem;
+      color: #64748b;
+      margin-bottom: 0.75rem;
+    }
+    .alert-body {
+      color: #334155;
+      font-size: 0.925rem;
+      margin-bottom: 1rem;
+      line-height: 1.5;
+    }
+    .alert-badge {
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 0.2rem 0.6rem;
+      border-radius: 4px;
+    }
+    .badge-HIGH { background: #fee2e2; color: #991b1b; }
+    .badge-MEDIUM { background: #fef3c7; color: #92400e; }
+    .badge-LOW { background: #dcfce7; color: #166534; }
+
+    .alert-actions {
+      display: flex;
+      gap: 0.75rem;
+    }
+    .btn-inspect {
+      background: #2563eb;
+      color: #ffffff;
+      border: none;
+      padding: 0.4rem 1rem;
+      border-radius: 4px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .btn-inspect:hover { background: #1d4ed8; }
+  </style>
+</head>
+<body>
+
+  <!-- Left Sidebar Layout -->
+  <aside class="sidebar">
+    <div>
+      <div class="brand">
+        <div class="brand-name">NIRAKSHAN AI</div>
+        <div class="brand-sub">MPLADS Audit System</div>
+      </div>
+      
+      <ul class="nav-list">
+        <li class="nav-item">
+          <a href="index.html"><i class="ri-layout-grid-line"></i> <span>Overview</span></a>
+        </li>
+        <li class="nav-item">
+          <a href="projects.html"><i class="ri-file-list-3-line"></i> <span>Work Directory</span></a>
+        </li>
+        <li class="nav-item active">
+          <a href="alerts.html"><i class="ri-alert-line"></i> <span>Risk Alerts</span></a>
+        </li>
+        <li class="nav-item">
+          <a href="analytics.html"><i class="ri-bar-chart-2-line"></i> <span>Reports</span></a>
+        </li>
+        <li class="nav-item">
+          <a href="riskmap.html"><i class="ri-map-pin-line"></i> <span>Risk Map</span></a>
+        </li>
+      </ul>
+    </div>
+  </aside>
+
+  <!-- Main View Area -->
+  <main class="main-content">
+    <header class="topbar">
+      <div style="display: flex; align-items: center; gap: 1rem;">
+        <button id="sidebar-toggle" class="icon-btn" title="Toggle Sidebar" type="button">
+          <i class="ri-menu-fold-line"></i>
+        </button>
+        <div class="page-title">
+          <h1>System Flagged Risk Alerts</h1>
+        </div>
+      </div>
+      <div class="user-profile">
+        <span class="badge-official">MoSPI Audit Node</span>
+        <i class="ri-user-2-line"></i>
+      </div>
+    </header>
+
+    <section class="dashboard-container">
+      <div class="filter-tabs">
+        <button class="filter-btn active" data-filter="ALL" id="filter-all">All Flags (0)</button>
+        <button class="filter-btn" data-filter="HIGH" id="filter-high">High Risk Flags (0)</button>
+        <button class="filter-btn" data-filter="MEDIUM" id="filter-medium">Medium Risk Flags (0)</button>
+        <button class="filter-btn" data-filter="LOW" id="filter-low">Low Risk Flags (0)</button>
+      </div>
+
+      <div id="alerts-container">
+        <div style="text-align: center; padding: 3rem; color: #2563eb;">
+          <i class="ri-loader-4-line" style="font-size: 2rem; display: inline-block; animation: spin 1s linear infinite;"></i>
+          <div style="margin-top: 0.5rem; font-weight: 600;">Extracting Risk Alerts...</div>
+        </div>
+      </div>
+
+      <div id="alerts-pagination" style="display: flex; justify-content: space-between; align-items: center; margin-top: 1.5rem; font-size: 0.85rem;"></div>
+    </section>
+  </main>
+
+  <script src="js/data-loader.js"></script>
+  <script src="js/alerts.js"></script>
+
+  <!-- Standalone Sidebar Toggle Fix -->
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const toggleBtn = document.getElementById("sidebar-toggle");
+      if (toggleBtn) {
+        toggleBtn.addEventListener("click", (e) => {
+          e.preventDefault();
+          document.body.classList.toggle("sidebar-collapsed");
+          
+          const icon = toggleBtn.querySelector("i");
+          if (icon) {
+            icon.className = document.body.classList.contains("sidebar-collapsed")
+              ? "ri-menu-unfold-line"
+              : "ri-menu-fold-line";
+          }
+        });
+      }
+    });
+  </script>
+</body>
+</html>

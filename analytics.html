@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NirakshanAI - Reports & Analytics</title>
+  
+  <link rel="stylesheet" href="css/style.css">
+  <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+  <!-- Left Sidebar Layout -->
+  <aside class="sidebar">
+    <div>
+      <div class="brand">
+        <div class="brand-name">NIRAKSHAN AI</div>
+        <div class="brand-sub">MPLADS Audit System</div>
+      </div>
+      
+      <ul class="nav-list">
+        <li class="nav-item">
+          <a href="index.html"><i class="ri-layout-grid-line"></i> <span>Overview</span></a>
+        </li>
+        <li class="nav-item">
+          <a href="projects.html"><i class="ri-file-list-3-line"></i> <span>Work Directory</span></a>
+        </li>
+        <li class="nav-item">
+          <a href="alerts.html"><i class="ri-alert-line"></i> <span>Risk Alerts</span></a>
+        </li>
+        <li class="nav-item active">
+          <a href="analytics.html"><i class="ri-bar-chart-2-line"></i> <span>Reports</span></a>
+        </li>
+        <li class="nav-item">
+          <a href="riskmap.html"><i class="ri-map-pin-line"></i> <span>Risk Map</span></a>
+        </li>
+      </ul>
+    </div>
+  </aside>
+
+  <!-- Main View Area -->
+  <main class="main-content">
+    <header class="topbar">
+      <div style="display: flex; align-items: center; gap: 1rem;">
+        <button id="sidebar-toggle" class="icon-btn" title="Toggle Sidebar" type="button">
+          <i class="ri-menu-fold-line"></i>
+        </button>
+        <div class="page-title">
+          <h1>Analytics</h1>
+        </div>
+      </div>
+      <div class="user-profile">
+        <span class="badge-official">MoSPI Audit Node</span>
+        <i class="ri-user-2-line"></i>
+      </div>
+    </header>
+
+    <section class="dashboard-container">
+      <div class="search-card" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem;">
+        <div>
+          <h3 style="margin:0; font-size: 1.25rem;">Executive Analytics Overview</h3>
+          <p style="margin: 0.25rem 0 0 0; color: #64748b; font-size: 0.875rem;">System-wide expenditure vs risk indicators calculated directly from Risk Engine JSON.</p>
+        </div>
+      </div>
+
+      <!-- Charts Grid -->
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); gap: 1.5rem;">
+        
+        <!-- Risk Distribution Doughnut Chart -->
+        <div style="background: #ffffff; padding: 1.5rem; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border: 1px solid #e2e8f0;">
+          <h3 style="font-size: 1.1rem; font-weight: 700; color: #0f172a; margin-bottom: 1rem;">Project Risk Distribution</h3>
+          <div style="position: relative; height: 300px;">
+            <canvas id="riskDistributionChart"></canvas>
+          </div>
+        </div>
+
+        <!-- State-wise Budget Bar Chart -->
+        <div style="background: #ffffff; padding: 1.5rem; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border: 1px solid #e2e8f0;">
+          <h3 style="font-size: 1.1rem; font-weight: 700; color: #0f172a; margin-bottom: 1rem;">State-wise Budget Allocation (₹ Lakhs)</h3>
+          <div style="position: relative; height: 300px;">
+            <canvas id="stateBudgetChart"></canvas>
+          </div>
+        </div>
+
+      </div>
+    </section>
+  </main>
+
+  <!-- Load Data and Chart Logic -->
+  <script src="js/data-loader.js"></script>
+  <script src="js/analytics.js"></script>
+
+  <!-- Standalone Global Toggle Logic -->
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const toggleBtn = document.getElementById("sidebar-toggle");
+      
+      if (toggleBtn) {
+        toggleBtn.addEventListener("click", (e) => {
+          e.preventDefault();
+          document.body.classList.toggle("sidebar-collapsed");
+
+          const icon = toggleBtn.querySelector("i");
+          if (icon) {
+            if (document.body.classList.contains("sidebar-collapsed")) {
+              icon.className = "ri-menu-unfold-line";
+            } else {
+              icon.className = "ri-menu-fold-line";
+            }
+          }
+        });
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Work Directory - NirakshanAI</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+  <style>
+    .filter-bar {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+      background: #fff;
+      padding: 1rem;
+      border-radius: 8px;
+      border: 1px solid #e2e8f0;
+    }
+    .filter-bar input, .filter-bar select {
+      padding: 0.5rem 0.75rem;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      font-size: 0.875rem;
+    }
+    .filter-bar input { flex: 1; min-width: 220px; }
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #fff;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid #e2e8f0;
+    }
+    .data-table th, .data-table td {
+      padding: 0.85rem 1rem;
+      text-align: left;
+      font-size: 0.85rem;
+      border-bottom: 1px solid #f1f5f9;
+    }
+    .data-table th {
+      background: #f8fafc;
+      color: #475569;
+      font-weight: 600;
+      text-transform: uppercase;
+      font-size: 0.75rem;
+    }
+    .badge {
+      padding: 0.25rem 0.5rem;
+      border-radius: 4px;
+      font-weight: 600;
+      font-size: 0.75rem;
+    }
+    .badge-high { background: #fee2e2; color: #dc2626; }
+    .badge-medium { background: #fef3c7; color: #d97706; }
+    .badge-low { background: #dcfce7; color: #16a34a; }
+    .action-btn {
+      background: #2563eb;
+      color: #fff;
+      border: none;
+      padding: 0.35rem 0.75rem;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.8rem;
+    }
+    .action-btn:hover { background: #1d4ed8; }
+  </style>
+</head>
+<body>
+
+  <aside class="sidebar">
+    <div>
+      <div class="brand">
+        <div class="brand-name">NIRAKSHAN AI</div>
+        <div class="brand-sub">MPLADS Audit System</div>
+      </div>
+      
+      <ul class="nav-list">
+        <li class="nav-item">
+          <a href="index.html"><i class="ri-layout-grid-line"></i> <span>Overview</span></a>
+        </li>
+        <li class="nav-item active">
+          <a href="projects.html"><i class="ri-file-list-3-line"></i> <span>Work Directory</span></a>
+        </li>
+        <li class="nav-item">
+          <a href="alerts.html"><i class="ri-alert-line"></i> <span>Risk Alerts</span></a>
+        </li>
+        <li class="nav-item">
+          <a href="analytics.html"><i class="ri-bar-chart-2-line"></i> <span>Reports</span></a>
+        </li>
+        <li class="nav-item">
+          <a href="riskmap.html"><i class="ri-map-pin-line"></i> <span>Risk Map</span></a>
+        </li>
+      </ul>
+    </div>
+  </aside>
+
+  <main class="main-content">
+    <header class="topbar">
+      <div style="display: flex; align-items: center; gap: 1rem;">
+        <button id="sidebar-toggle" class="icon-btn" title="Toggle Sidebar" type="button">
+          <i class="ri-menu-fold-line"></i>
+        </button>
+        <div class="page-title">
+          <h1>Work Directory & Project Database</h1>
+        </div>
+      </div>
+      <div class="user-profile">
+        <span class="badge-official">MoSPI Audit Node</span>
+      </div>
+    </header>
+
+    <section class="dashboard-container">
+      <div class="filter-bar">
+        <input type="text" id="search-input" placeholder="Search by Work ID, Project Name, Location...">
+        
+        <select id="risk-filter">
+          <option value="ALL">All Risk Levels</option>
+          <option value="HIGH">High Risk</option>
+          <option value="MEDIUM">Medium Risk</option>
+          <option value="LOW">Low Risk</option>
+        </select>
+
+        <select id="status-filter">
+          <option value="ALL">All Statuses</option>
+          <option value="COMPLETED">Completed</option>
+          <option value="NOT COMPLETED">Not Completed</option>
+        </select>
+
+        <div style="margin-left: auto; align-self: center; font-size: 0.85rem; color: #64748b;">
+          Total Listed: <strong id="project-count" style="color: #0f172a;">0</strong>
+        </div>
+      </div>
+
+      <div style="overflow-x: auto;">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Work ID</th>
+              <th>Project Details</th>
+              <th>Location</th>
+              <th>Sanction Amount</th>
+              <th>Progress</th>
+              <th>Risk Level</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="projects-table-body">
+            <tr>
+              <td colspan="7" style="text-align: center; padding: 1.5rem; color: #64748b;">Loading...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <script src="js/data-loader.js"></script>
+  <script src="js/projects.js"></script>
+
+  <!-- Standalone Sidebar Toggle Script -->
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const toggleBtn = document.getElementById("sidebar-toggle");
+      if (toggleBtn) {
+        toggleBtn.addEventListener("click", (e) => {
+          e.preventDefault();
+          document.body.classList.toggle("sidebar-collapsed");
+          
+          const icon = toggleBtn.querySelector("i");
+          if (icon) {
+            icon.className = document.body.classList.contains("sidebar-collapsed")
+              ? "ri-menu-unfold-line"
+              : "ri-menu-fold-line";
+          }
+        });
+      }
+    });
+  </script>
+</body>
+</html>
